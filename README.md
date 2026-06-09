@@ -43,6 +43,49 @@ Offboardly/
 
 ---
 
+## ✨ Key Features
+
+### User Authentication
+- **Secure Register & Login**: Employee registration with secure password hashing (`bcryptjs`).
+- **JWT Protection**: Secured session tokens that persist state across page reloads using browser `localStorage`.
+- **Role-Based Routing**: Dynamically displays the appropriate dashboard features based on whether the logged-in user is an Employee or a Manager.
+
+### Employee Features
+- **Leave Balance Dashboard**: Displays Total, Taken, and Remaining leaves computed automatically from approved requests.
+- **Leave Request Form**: Simple form to submit leaves with selection of Leave Types (Casual, Sick, Earned, Maternity/Paternity) and reasons.
+- **Form Validation**: Blocks submissions if the End Date is before the Start Date, or if the requested days exceed the employee's remaining balance.
+- **History Logs**: Shows table layout of recent and full history with status badges (Pending, Approved, Rejected).
+
+### Manager Features
+- **Pending Review Queue**: An incoming queue showing employee names, leave dates, reasons, durations, and action triggers (Approve / Reject).
+- **Status Distribution Charts**: Beautiful, animated donut chart built with **Chart.js** displaying real-time proportions of Approved, Pending, and Rejected leaves.
+- **Leave Calendar Grid**: Interactive, custom monthly calendar overlaying color-coded bars indicating team members on approved leaves.
+
+### Developer Features
+- **Simulated Email Inbox Drawer**: A collapsible drawer widget in the bottom-right corner that polls and lists all notification emails locally in real-time, making it easy to test notifications without configuring SMTP.
+
+---
+
+## 🧠 Challenges Faced & Solutions
+
+### 1. Separate Folder CORS Block
+- **Challenge**: Separating the frontend and backend into two isolated folders caused cross-origin request blocks in the browser when the frontend attempted to connect to the backend server running on port `5000`.
+- **Solution**: Enabled Cross-Origin Resource Sharing on the Express backend using the `cors` package (`app.use(cors())`). This allows the frontend to run from file paths or local servers and talk to the backend seamlessly.
+
+### 2. Timezone Offsets Skewing Calendar Days
+- **Challenge**: Standard Date construction in JavaScript (`new Date("YYYY-MM-DD")`) parses values in UTC, which often shifts the calendar day backwards or forwards by one day depending on the user's local timezone.
+- **Solution**: Parsed dates by splitting strings into segments (`[year, month, day]`) and creating local Dates using `new Date(year, month - 1, day)`. This locks dates to local time, preventing any timezone shift.
+
+### 3. Native Database Driver Compilation Issues
+- **Challenge**: Traditional SQLite native node bindings (`sqlite3` / `better-sqlite3`) frequently fail to compile on Windows environments without heavy C++ build tools installed.
+- **Solution**: Migrated database connectivity to **MySQL** using the native JS driver `mysql2/promise`. It connects to the MySQL service out-of-the-box without requiring compilation.
+
+### 4. Testing Email Notifications Locally
+- **Challenge**: Triggering actual emails on leave submission, approval, or rejection requires valid SMTP relay credentials, which can be hard to configure and test in a local development environment.
+- **Solution**: Implemented a mock database fallback in `emailService.js`. If SMTP configurations are missing, emails are logged to a database table `simulated_emails` and rendered inside a collapsible "Simulated Email Inbox" drawer in the frontend.
+
+---
+
 ## 🚀 Quick Start Guide
 
 ### 1. Database Configuration
@@ -80,14 +123,3 @@ On startup, the backend automatically creates the `offboardly_db` database and s
 Because Cross-Origin Resource Sharing (CORS) is enabled on the backend, you can open the frontend page directly:
 - Open `frontend/index.html` in your browser (double-click the file), OR
 - Right-click `frontend/index.html` in VS Code and select **Open with Live Server**.
-
----
-
-## 💡 Key Features & Code Logic
-
-1. **Automatic Database Provisioning**: No need to manually import `.sql` files. The backend checks for tables on startup and creates them automatically.
-2. **Strict Client-Side & Server-Side Validation**:
-   - Blocks applying for a leave when the end date is prior to the start date.
-   - Computes leave request durations and checks remaining balances, blocking requests that exceed available leave days.
-3. **Simulated Email Console Widget**: If you do not configure SMTP credentials in `.env`, the system saves all email notification layouts inside the database. A collapsible drawer in the bottom right of the frontend screen polls these logs and displays them, allowing you to test submission, approval, and rejection alerts locally.
-4. **Custom CSS Grid Calendar**: Displays a clean month grid overlaying colored strips of team members on approved leaves.
