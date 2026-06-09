@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offboardly - Employee Leave Management System</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Custom CSS for Premium Design -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-light">
+
+  <!-- ========================================================
+       TOP NAVBAR
+       ======================================================== -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-cobalt py-3 shadow-sm d-none" id="mainNavbar">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand d-flex align-items-center fw-bold" href="#">
+        <i class="bi bi-calendar-check-fill text-cyan me-2 fs-4"></i>
+        <span>Offboardly</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <span class="nav-link text-white-50 fs-7">Leave Management Portal</span>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center text-white">
+          <div class="me-3 text-end">
+            <div class="fw-semibold" id="navUserName">Loading...</div>
+            <div class="text-cyan text-uppercase fs-8 fw-bold" id="navUserRole">Role</div>
+          </div>
+          <button class="btn btn-outline-cyan btn-sm px-3 fw-medium" id="btnLogoutBtn">
+            <i class="bi bi-box-arrow-right me-1"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========================================================
+       AUTH SECTION (LOGIN / REGISTRATION)
+       ======================================================== -->
+  <section class="auth-section" id="authSection">
+    <div class="container">
+      <div class="row justify-content-center min-vh-100 align-items-center py-5">
+        <div class="col-md-5">
+          <!-- Auth Logo & Subtitle -->
+          <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center bg-cobalt text-white p-3 rounded-4 shadow-sm mb-3">
+              <i class="bi bi-calendar-check-fill fs-1 text-cyan"></i>
+            </div>
+            <h1 class="fw-bold text-cobalt mb-1">Offboardly</h1>
+            <p class="text-muted">Simple, modern leave management for teams</p>
+          </div>
+
+          <!-- Alert Container for Errors/Success -->
+          <div id="authAlert" class="alert d-none shadow-sm alert-dismissible fade show" role="alert">
+            <span id="authAlertMsg">Error message here</span>
+            <button type="button" class="btn-close" onclick="document.getElementById('authAlert').classList.add('d-none')"></button>
+          </div>
+
+          <!-- Authentication Card -->
+          <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-header bg-cobalt text-white p-4 border-0 text-center">
+              <h4 class="fw-bold mb-0" id="authCardTitle">Welcome Back</h4>
+              <p class="text-white-50 mb-0 fs-7" id="authCardSub">Sign in to request and manage leaves</p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+              <!-- Segmented Role Selector -->
+              <div class="role-selector mb-4 p-1 bg-light rounded-pill d-flex border" id="roleToggleContainer">
+                <button type="button" class="btn btn-pill active w-50" id="roleBtnEmployee" onclick="setAuthRole('employee')">Employee</button>
+                <button type="button" class="btn btn-pill w-50" id="roleBtnManager" onclick="setAuthRole('manager')">Manager</button>
+              </div>
+
+              <!-- Login & Registration Form -->
+              <form id="authForm" novalidate>
+                <!-- Name field (only visible on Register) -->
+                <div class="form-floating mb-3 d-none" id="registerNameGroup">
+                  <input type="text" class="form-control" id="authName" placeholder="John Doe">
+                  <label for="authName"><i class="bi bi-person me-2"></i>Full Name</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                  <input type="email" class="form-control" id="authEmail" placeholder="name@example.com" required>
+                  <label for="authEmail"><i class="bi bi-envelope me-2"></i>Email Address</label>
+                </div>
+
+                <div class="form-floating mb-4">
+                  <input type="password" class="form-control" id="authPassword" placeholder="Password" required>
+                  <label for="authPassword"><i class="bi bi-lock me-2"></i>Password</label>
+                </div>
+
+                <button type="submit" class="btn btn-coral text-white w-100 py-3 rounded-3 fw-bold shadow-sm mb-3" id="authSubmitBtn">
+                  <span id="authBtnText">Sign In</span>
+                  <span class="spinner-border spinner-border-sm d-none" id="authSpinner" role="status"></span>
+                </button>
+              </form>
+
+              <!-- Switch between Login and Register -->
+              <div class="text-center mt-3 fs-7" id="authSwitchContainer">
+                <span class="text-muted" id="authSwitchText">Don't have an account?</span>
+                <a href="#" class="text-coral fw-bold text-decoration-none ms-1" id="authSwitchBtn" onclick="toggleAuthMode(event)">Sign Up</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       MAIN APP LAYOUT
+       ======================================================== -->
+  <main class="container-fluid py-4 d-none" id="appLayout">
+    <div class="row">
+      <!-- SIDEBAR NAVIGATION -->
+      <div class="col-md-3 col-lg-2 mb-4">
+        <div class="card border-0 shadow-sm rounded-3 py-2 sidebar-card">
+          <div class="list-group list-group-flush" id="sidebarMenu">
+            <!-- Dynamically populated links -->
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT PANEL -->
+      <div class="col-md-9 col-lg-10">
+        <!-- GLOBAL APP ALERT -->
+        <div id="appAlert" class="alert d-none shadow-sm alert-dismissible fade show" role="alert">
+          <span id="appAlertMsg">System notification</span>
+          <button type="button" class="btn-close" onclick="document.getElementById('appAlert').classList.add('d-none')"></button>
+        </div>
+
+        <!-- ==================== EMPLOYEE VIEWS ==================== -->
+        
+        <!-- View: Employee Dashboard -->
+        <div class="app-view d-none" id="view-employee-dashboard">
+          <h2 class="fw-bold text-cobalt mb-4">Dashboard</h2>
+          
+          <!-- Balance Cards -->
+          <div class="row g-4 mb-4">
+            <div class="col-md-4">
+              <div class="card border-0 shadow-sm rounded-3 balance-card border-left-cobalt">
+                <div class="card-body p-4 d-flex align-items-center">
+                  <div class="bg-cobalt-light text-cobalt p-3 rounded-3 me-3 fs-3">
+                    <i class="bi bi-clipboard2-check"></i>
+                  </div>
+                  <div>
+                    <h6 class="text-muted fw-semibold mb-1">Total Leaves (Annual)</h6>
+                    <h3 class="fw-bold mb-0 text-cobalt" id="statTotalLeaves">24</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card border-0 shadow-sm rounded-3 balance-card border-left-cyan">
+                <div class="card-body p-4 d-flex align-items-center">
+                  <div class="bg-cyan-light text-cyan-dark p-3 rounded-3 me-3 fs-3">
+                    <i class="bi bi-airplane-engines"></i>
+                  </div>
+                  <div>
+                    <h6 class="text-muted fw-semibold mb-1">Leaves Taken</h6>
+                    <h3 class="fw-bold mb-0 text-cobalt" id="statLeavesTaken">0</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card border-0 shadow-sm rounded-3 balance-card border-left-coral">
+                <div class="card-body p-4 d-flex align-items-center">
+                  <div class="bg-coral-light text-coral p-3 rounded-3 me-3 fs-3">
+                    <i class="bi bi-shield-exclamation"></i>
+                  </div>
+                  <div>
+                    <h6 class="text-muted fw-semibold mb-1">Remaining Leaves</h6>
+                    <h3 class="fw-bold mb-0 text-cobalt" id="statRemainingLeaves">24</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions & Brief History -->
+          <div class="row g-4">
+            <!-- Apply Leave Quick Form -->
+            <div class="col-lg-5">
+              <div class="card border-0 shadow-sm rounded-3 p-4">
+                <h5 class="fw-bold text-cobalt mb-3"><i class="bi bi-plus-circle-dotted me-2"></i>Apply for Leave</h5>
+                <form id="leaveApplicationForm">
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold text-muted">Leave Type</label>
+                    <select class="form-select" id="leaveType" required>
+                      <option value="Casual">Casual Leave</option>
+                      <option value="Sick">Sick Leave</option>
+                      <option value="Earned">Earned Leave</option>
+                      <option value="Maternity/Paternity">Maternity/Paternity</option>
+                    </select>
+                  </div>
+                  <div class="row mb-3">
+                    <div class="col-6">
+                      <label class="form-label fw-semibold text-muted">Start Date</label>
+                      <input type="date" class="form-control" id="leaveStartDate" required>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label fw-semibold text-muted">End Date</label>
+                      <input type="date" class="form-control" id="leaveEndDate" required>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold text-muted">Reason</label>
+                    <textarea class="form-control" id="leaveReason" rows="3" placeholder="Please explain the reason for your time-off request..." required></textarea>
+                  </div>
+                  <div class="mb-2 text-end text-muted fs-8 fw-semibold" id="leaveDurationCalc">
+                    Duration: 0 days
+                  </div>
+                  <button type="submit" class="btn btn-coral text-white w-100 py-2.5 rounded-2 fw-semibold shadow-sm" id="leaveSubmitBtn">
+                    Submit Request
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Brief History Table -->
+            <div class="col-lg-7">
+              <div class="card border-0 shadow-sm rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="fw-bold text-cobalt mb-0"><i class="bi bi-clock-history me-2"></i>Recent Leave History</h5>
+                  <button class="btn btn-link btn-sm text-coral fw-bold text-decoration-none" onclick="navigateTo('view-employee-history')">View All</button>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0" id="recentHistoryTable">
+                    <thead>
+                      <tr class="text-uppercase text-muted fs-8">
+                        <th>Leave Type</th>
+                        <th>Dates</th>
+                        <th>Days</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Dynamically loaded rows -->
+                      <tr>
+                        <td colspan="4" class="text-center text-muted py-4">No leave history found.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Employee Leave History -->
+        <div class="app-view d-none" id="view-employee-history">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-cobalt mb-0">Leave History</h2>
+            <button class="btn btn-outline-cobalt btn-sm" onclick="navigateTo('view-employee-dashboard')">
+              <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </button>
+          </div>
+          <div class="card border-0 shadow-sm rounded-3 p-4">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" id="fullHistoryTable">
+                <thead>
+                  <tr class="text-uppercase text-muted fs-8">
+                    <th>Request Date</th>
+                    <th>Leave Type</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Reason</th>
+                    <th class="text-center">Days</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Dynamically loaded rows -->
+                  <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Loading your history...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ==================== MANAGER VIEWS ==================== -->
+
+        <!-- View: Manager Dashboard -->
+        <div class="app-view d-none" id="view-manager-dashboard">
+          <h2 class="fw-bold text-cobalt mb-4">Manager Operations</h2>
+
+          <!-- Stats & Charts Section -->
+          <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+              <div class="card border-0 shadow-sm rounded-3 p-4 h-100">
+                <h5 class="fw-bold text-cobalt mb-3"><i class="bi bi-graph-up-arrow me-2"></i>Leave Status Distribution</h5>
+                <!-- Chart Container -->
+                <div class="chart-container d-flex justify-content-center align-items-center p-3" style="position: relative; height:240px;">
+                  <canvas id="statsChart"></canvas>
+                  <div id="chartNoDataMsg" class="d-none text-muted">No data available for charts yet.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats Numeric Panel -->
+            <div class="col-lg-6">
+              <div class="card border-0 shadow-sm rounded-3 p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                  <h5 class="fw-bold text-cobalt mb-4"><i class="bi bi-grid-fill me-2"></i>System Totals</h5>
+                  <div class="row g-3">
+                    <div class="col-6">
+                      <div class="border rounded-3 p-3 bg-light text-center">
+                        <div class="text-warning fs-1 fw-bold" id="totalPendingLeavesCount">0</div>
+                        <div class="text-muted fs-8 fw-semibold text-uppercase">Pending Leaves</div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="border rounded-3 p-3 bg-light text-center">
+                        <div class="text-success fs-1 fw-bold" id="totalApprovedLeavesCount">0</div>
+                        <div class="text-muted fs-8 fw-semibold text-uppercase">Approved Leaves</div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="border rounded-3 p-3 bg-light text-center">
+                        <div class="text-danger fs-1 fw-bold" id="totalRejectedLeavesCount">0</div>
+                        <div class="text-muted fs-8 fw-semibold text-uppercase">Rejected Leaves</div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="border rounded-3 p-3 bg-light text-center">
+                        <div class="text-cobalt fs-1 fw-bold" id="totalStaffRegistered">0</div>
+                        <div class="text-muted fs-8 fw-semibold text-uppercase">Total Employees</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-4 border-top pt-3 text-muted fs-8 text-center">
+                  Overview of all leave requests across the company.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Requests Queue -->
+          <div class="card border-0 shadow-sm rounded-3 p-4">
+            <h5 class="fw-bold text-cobalt mb-3"><i class="bi bi-inboxes me-2"></i>Pending Approval Requests</h5>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" id="managerPendingTable">
+                <thead>
+                  <tr class="text-uppercase text-muted fs-8">
+                    <th>Employee Name</th>
+                    <th>Leave Type</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Reason</th>
+                    <th class="text-center">Days</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Dynamically loaded pending request rows -->
+                  <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No pending leave requests.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SHARED VIEWS ==================== -->
+
+        <!-- View: Leave Calendar -->
+        <div class="app-view d-none" id="view-shared-calendar">
+          <h2 class="fw-bold text-cobalt mb-4">Leave Calendar</h2>
+          <div class="card border-0 shadow-sm rounded-3 p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 g-2">
+              <div class="d-flex align-items-center">
+                <button class="btn btn-outline-cobalt btn-sm me-2" onclick="changeCalendarMonth(-1)">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <h4 class="fw-bold mb-0 text-cobalt" id="calendarMonthTitle">June 2026</h4>
+                <button class="btn btn-outline-cobalt btn-sm ms-2" onclick="changeCalendarMonth(1)">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="d-flex flex-wrap gap-2 text-muted fs-8">
+                <div class="d-flex align-items-center">
+                  <span class="badge bg-cobalt me-1 d-inline-block" style="width: 12px; height: 12px;">&nbsp;</span> Casual
+                </div>
+                <div class="d-flex align-items-center">
+                  <span class="badge bg-danger me-1 d-inline-block" style="width: 12px; height: 12px;">&nbsp;</span> Sick
+                </div>
+                <div class="d-flex align-items-center">
+                  <span class="badge bg-success me-1 d-inline-block" style="width: 12px; height: 12px;">&nbsp;</span> Earned
+                </div>
+                <div class="d-flex align-items-center">
+                  <span class="badge bg-warning text-dark me-1 d-inline-block" style="width: 12px; height: 12px;">&nbsp;</span> Maternity/Paternity
+                </div>
+              </div>
+            </div>
+            
+            <!-- Calendar Grid Container -->
+            <div id="calendarGrid" class="calendar-grid">
+              <!-- Dynamically rendered custom calendar -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================
+       DEVELOPER CONSOLE: SIMULATED EMAIL INBOX
+       ======================================================== -->
+  <div class="email-sim-drawer shadow-lg border-top" id="emailSimDrawer">
+    <!-- Header/Toggle Button -->
+    <div class="email-sim-header bg-dark text-white px-3 py-2 d-flex justify-content-between align-items-center cursor-pointer" onclick="toggleEmailDrawer()">
+      <div class="d-flex align-items-center fw-bold fs-7">
+        <i class="bi bi-envelope-open-fill text-cyan me-2 animate-bounce"></i>
+        <span>Offboardly Email Simulator (Developer Console)</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-coral rounded-pill fs-9" id="emailBadge">0</span>
+        <i class="bi bi-chevron-up text-white fs-7 transition" id="emailChevron"></i>
+      </div>
+    </div>
+    <!-- Body: Email List -->
+    <div class="email-sim-body bg-white p-3 overflow-y-auto" id="emailSimBody">
+      <div class="text-center text-muted py-4 fs-8">
+        <i class="bi bi-mailbox fs-3 mb-2 d-block"></i>
+        No email notifications have been sent yet. Apply for leave or process requests to see alerts here.
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js CDN for Dashboards -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- App JavaScript files -->
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/manager.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/emailBox.js"></script>
+</body>
+</html>
